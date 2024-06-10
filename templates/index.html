@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.css') }}">
+    <title>Recommendation System</title>
+    <style>
+        body {
+            background-color: #e9f5e9;
+        }
+        .card {
+            background-color: #f8fff8;
+            border-color: #d4edda;
+        }
+        .btn-outline-primary {
+            color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-outline-primary:hover {
+            background-color: #28a745;
+            color: white;
+        }
+        .selected {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .list-group-item {
+            background-color: #f8fff8;
+            border-color: #d4edda;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container m-5">
+        <div class="card p-10 m-10">
+            <div class="card-body">
+                <h5 class="card-title">Select Services</h5>
+                <div id="services">
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">Cardiology</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">Neurology</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">Orthopedics</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">Pediatrics</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">Radiology</button>
+                </div>
+                <h6 class="mt-4">Selected Services:</h6>
+                <ul id="selected-services" class="list-group">
+                    <!-- Selected services will appear here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectService(button) {
+            button.classList.toggle('selected');
+            const service = button.innerText;
+            const selectedServices = document.getElementById('selected-services');
+            
+            if (button.classList.contains('selected')) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerText = service;
+                li.id = 'selected-' + service;
+                selectedServices.appendChild(li);
+            } else {
+                const liToRemove = document.getElementById('selected-' + service);
+                if (liToRemove) {
+                    selectedServices.removeChild(liToRemove);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

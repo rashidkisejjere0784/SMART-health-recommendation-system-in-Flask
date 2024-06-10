@@ -1,0 +1,361 @@
+{% extends "navbar.html" %}
+
+{% block content %}
+
+<div class="container m-5">
+    <div class="card p-10 m-10">
+        <div class="card-body">
+            <!-- Step Navigation Bar -->
+            <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#" onclick="goToStep(1)"><i class="fas fa-cogs"></i> Services</a></li>
+                    <li class="breadcrumb-item"><a href="#" onclick="goToStep(2)"><i class="fas fa-cogs"></i> Location</a></li>
+                    <li class="breadcrumb-item"><a href="#" onclick="goToStep(3)"><i class="fas fa-money-bill-alt"></i> Payment</a></li>
+                    <li class="breadcrumb-item"><a href="#" onclick="goToStep(4)"><i class="fas fa-user-nurse"></i> Care System</a></li>
+                    <li class="breadcrumb-item"><a href="#" onclick="goToStep(5)"><i class="far fa-calendar-alt"></i> Date</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-star"></i> Rating</li>
+                </ol>
+            </nav>
+            
+            <!-- First Part: Service Selection -->
+            <div id="service-selection">
+                <h5 class="card-title">Select Services</h5>
+                <div id="services">
+                    {% for service in services %}
+                        <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">{{ service }}</button>
+                    {% endfor %}
+                </div>
+                <h6 class="mt-4">Selected Services:</h6>
+                <ul id="selected-services" class="list-group">
+                    <!-- Selected services will appear here -->
+                </ul>
+                <div class="mt-4 text-right">
+                    <button class="btn btn-success fixed-button" id="next-button" disabled onclick="goToLocation()">Next</button>
+                </div>
+            </div>
+
+            <!-- First Part: Service Selection -->
+            <div id="location-selection" style="display: none;">
+                <h5 class="card-title">Select Location</h5>
+                <div id="locations">
+                    {% for location in locations %}
+                        <button type="button" class="btn btn-outline-primary m-2" onclick="selectLocation(this)">{{ location }}</button>
+                    {% endfor %}
+                </div>
+                <h6 class="mt-4">Selected locations:</h6>
+                <ul id="selected-locations" class="list-group">
+                    <!-- Selected locations will appear here -->
+                </ul>
+                <div class="mt-4 text-right">
+                    <button class="btn btn-success fixed-button" id="next-location-button" disabled onclick="goToPayment()">Next</button>
+                </div>
+            </div>
+
+            <!-- Second Part: Payment System Selection (Initially Hidden) -->
+            <div id="payment-selection" style="display: none;">
+                <h5 class="card-title">Select Payment System</h5>
+                <div id="payment-options">
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectPayment(this)">Any</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectPayment(this)">Cash</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectPayment(this)">Insurance</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectPayment(this)">No Payment</button>
+                </div>
+                <h6 class="mt-4">Selected Payment System:</h6>
+                <ul id="selected-payment" class="list-group">
+                    <!-- Selected payment system will appear here -->
+                </ul>
+                <div class="mt-4 text-right">
+                    <button class="btn btn-success fixed-button" id="next-payment-button" disabled onclick="goToCareSystem()">Next</button>
+                </div>
+            </div>
+
+            <!-- Third Part: Care System Selection (Initially Hidden) -->
+            <div id="care-system-selection" style="display: none;">
+                <h5 class="card-title">Select Care System</h5>
+                <div id="care-options">
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectCare(this)">Any</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectCare(this)">Public</button>
+                    <button type="button" class="btn btn-outline-primary m-2" onclick="selectCare(this)">Private</button>
+                </div>
+                <h6 class="mt-4">Selected Care System:</h6>
+                <ul id="selected-care" class="list-group">
+                    <!-- Selected care system will appear here -->
+                </ul>
+                <div class="mt-4 text-right">
+                    <button class="btn btn-success fixed-button" onclick="goToDateSelection()">Next</button>
+                </div>
+            </div>
+
+            <!-- Fourth Part: Date Selection and Rating (Initially Hidden) -->
+            <div id="date-selection" style="display: none;">
+                <h5 class="card-title">Select Day</h5>
+                <select id="date" class="selectpicker w-50" multiple>
+                    <option>Any</option>
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                    <option>Saturday</option>
+                    <option>Sunday</option>
+                </select>
+                <br>
+                <br>
+
+                <h5 class="card-title">Rate the Hospital (0-5)</h5>
+                <input type="range" class="form-range" min="0" max="5" step="0.5" id="customRange3" oninput="updateRatingValue(this.value)">
+                <div id="rating-value" class="mt-2">Rating: 2.5</div>
+
+                <div class="mt-4 text-right">
+                    <button class="btn btn-success fixed-button" onclick="submitForm()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Recommended Hospitals</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="hospitalDataContainer">
+                    Selected values have been successfully sent.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function selectService(button) {
+        button.classList.toggle('selected');
+        const service = button.innerText;
+        const selectedServices = document.getElementById('selected-services');
+        
+        if (button.classList.contains('selected')) {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerText = service;
+            li.id = 'selected-' + service;
+            selectedServices.appendChild(li);
+        } else {
+            const liToRemove = document.getElementById('selected-' + service);
+            if (liToRemove) {
+                selectedServices.removeChild(liToRemove);
+            }
+        }
+
+        // Enable/Disable the Next button based on selected services
+        const nextButton = document.getElementById('next-button');
+        if (selectedServices.children.length > 0) {
+            nextButton.disabled = false;
+        } else {
+            nextButton.disabled = true;
+        }
+    }
+
+    function selectLocation(button) {
+        button.classList.toggle('selected');
+        const location = button.innerText;
+        const selectedlocations = document.getElementById('selected-locations');
+        
+        if (button.classList.contains('selected')) {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerText = location;
+            li.id = 'selected-' + location;
+            selectedlocations.appendChild(li);
+        } else {
+            const liToRemove = document.getElementById('selected-' + location);
+            if (liToRemove) {
+                selectedlocations.removeChild(liToRemove);
+            }
+        }
+
+        // Enable/Disable the Next button based on selected locations
+        const nextButton = document.getElementById('next-location-button');
+        if (selectedlocations.children.length > 0) {
+            nextButton.disabled = false;
+        } else {
+            nextButton.disabled = true;
+        }
+    }
+
+
+    function selectPayment(button) {
+        const selectedPayment = document.getElementById('selected-payment');
+        selectedPayment.innerHTML = ''; // Clear previous selection
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.innerText = button.innerText;
+        selectedPayment.appendChild(li);
+
+        // Enable the Next button after payment selection
+        const nextPaymentButton = document.getElementById('next-payment-button');
+        nextPaymentButton.disabled = false;
+    }
+
+    function selectCare(button) {
+        const selectedCare = document.getElementById('selected-care');
+        selectedCare.innerHTML = ''; // Clear previous selection
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.innerText = button.innerText;
+        selectedCare.appendChild(li);
+    }
+
+    function goToLocation() {
+        document.getElementById('service-selection').style.display = 'none';
+        document.getElementById('location-selection').style.display = 'block';
+    }
+    
+    function goToPayment() {
+        document.getElementById('location-selection').style.display = 'none';
+        document.getElementById('payment-selection').style.display = 'block';
+    }
+
+    function goToCareSystem() {
+        document.getElementById('payment-selection').style.display = 'none';
+        document.getElementById('care-system-selection').style.display = 'block';
+    }
+
+    function goToDateSelection() {
+        document.getElementById('care-system-selection').style.display = 'none';
+        document.getElementById('date-selection').style.display = 'block';
+    }
+
+    function updateRatingValue(value) {
+        document.getElementById('rating-value').innerText = 'Rating: ' + value;
+    }
+
+    function submitForm() {
+        const selectedServices = Array.from(document.getElementById('selected-services').children).map(li => li.innerText);
+        const selectedPayment = document.getElementById('selected-payment').innerText;
+        const selectedCare = document.getElementById('selected-care').innerText;
+        const selectedRating = document.getElementById('customRange3').value;
+        const selectedLocation = Array.from(document.getElementById('selected-locations').children).map(li => li.innerText);
+        const date = document.getElementById('date');
+        const selectedOptions = date.selectedOptions;
+        const values = Array.from(selectedOptions).map(option => option.value);
+
+        console.log(selectedLocation)
+
+        // You can now send this data to the server or process it as needed
+        fetch('/get_recommendations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                     'services': selectedServices,
+                      'payment': selectedPayment,
+                      'care': selectedCare,
+                      'rating': selectedRating,
+                      'location': selectedLocation,
+                      'date': values,
+                     })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                recommendations = data['recommendations']
+                if (data['status'] == 'success'){
+                    displayData(recommendations);
+                    $('#successModal').modal('show');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function displayData(data) {
+        data = JSON.parse(data);
+        console.log(data);
+        const hospitalIds = data['Hospital Id'];
+        const hospitalNames = data['Hospital Name'];
+        const ratings = data['rating'];
+        const careSystems = data['Care system'];
+        const services = data['Services'];
+        const operatingTimes = data['Operating Time'];
+        const locations = data['Location'];
+        const payments = data['Payment'];
+
+        const dataContainer = document.getElementById('hospitalDataContainer');
+        dataContainer.innerHTML = '';
+
+        for (var i = 0; i < Object.keys(hospitalIds).length; i++) {
+            let card = document.createElement('div');
+            card.className = 'hospital-card';
+
+            // Create stars based on rating value
+            let ratingStars = '';
+            const ratingValue = Math.round(Object.values(ratings)[i]);
+            for (let j = 0; j < 5; j++) {
+                if (j < ratingValue) {
+                    ratingStars += '<i class="fas fa-star"></i>';
+                } else {
+                    ratingStars += '<i class="far fa-star"></i>';
+                }
+            }
+
+            // Create operating time table
+            const operatingTimeArray = Object.values(operatingTimes)[i].split(',');
+            const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            let operatingTimeTable = '<table class="table table-sm"><thead><tr>';
+            daysOfWeek.forEach(day => operatingTimeTable += `<th>${day}</th>`);
+            operatingTimeTable += '</tr></thead><tbody><tr>';
+            operatingTimeArray.forEach(time => operatingTimeTable += `<td>${time}</td>`);
+            operatingTimeTable += '</tr></tbody></table>';
+
+            card.innerHTML = `
+                <div class="hospital-name font-weight-bold">${Object.values(hospitalNames)[i]}</div>
+                <div class="hospital-info">
+                    ${Object.values(services)[i]}
+                </div>
+                <div class="hospital-info">
+                    <span class="hospital-rating">${ratingStars}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${Object.values(locations)[i]}</span>
+                </div>
+                <div class="hospital-info">
+                    ${operatingTimeTable}
+                </div>
+                <div class="hospital-info">
+                    <strong>Payment Type:</strong> ${Object.values(payments)[i]}
+                </div>
+            `;
+
+            dataContainer.appendChild(card);
+        }
+    }
+
+    function goToStep(step) {
+        // Hide all steps
+        document.getElementById('service-selection').style.display = 'none';
+        document.getElementById('location-selection').style.display = 'none';
+        document.getElementById('payment-selection').style.display = 'none';
+        document.getElementById('care-system-selection').style.display = 'none';
+        document.getElementById('date-selection').style.display = 'none';
+
+        // Show selected step
+        if (step === 1) {
+            document.getElementById('service-selection').style.display = 'block';
+        } else if (step === 2) {
+            document.getElementById('location-selection').style.display = 'block';
+        }else if(step == 3){
+            document.getElementById('payment-selection').style.display = 'block';
+        }
+         else if (step === 4) {
+            document.getElementById('care-system-selection').style.display = 'block';
+        } else if (step === 5) {
+            document.getElementById('date-selection').style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

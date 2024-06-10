@@ -1,0 +1,41 @@
+Service Id,Service Name
+1,mental health
+2,Surgery
+3,Health
+4,Dentistry
+5,Cancer
+6,General Care
+7,ICU
+8,Inpatient
+9,Outpatient
+10,HIV/AIDs
+11,Radiology
+12,Throat
+13,Ear
+14,Nose
+15,Maternity
+16,Pediatric
+17,Children
+18,Diagnostic
+19,Pathology
+20,emergency medicine
+21,Neonatal
+22,IVF
+23,Oncology
+24,Chemotherapy
+25,Radiotherapy
+26,Palliative
+27,Cardiovarsicular
+28,Heart
+29,Immunization
+30,Orthopedics
+31,referral
+33, Ophthalmology
+34,Physiotherapy
+35,Tuberclosis
+36,Dermatology
+37,Psychiatry
+38,Therapy
+39,X-ray
+41,Antenetal
+42,Family Planning
