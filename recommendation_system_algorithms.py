@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
-
+import pandas as pd
+import intellikit as ik
 
 def calculate_cosine_similarity(point, Full_data ,hospital_data, n=3):
     cosine_similarities = np.dot(Full_data, point.T) / (norm(Full_data, axis=1)[:, np.newaxis] * norm(point))
@@ -29,3 +30,44 @@ def get_recommendation_filtered_services(service, location, op_day, care_s, paym
     top_choices = top_choices[Final_choices]
 
     return hospital_data.iloc[top_choices]
+
+def create_dict(col_dict : dict, col_array : np.ndarray, value) -> dict:
+    for val in col_array:
+        col_dict[val] = value
+
+    return col_dict
+
+def get_recommendation_CBR(full_data_df : pd.DataFrame, query_df : pd.DataFrame, n = 10):
+    columns = full_data_df.columns
+    hamming = ik.sim_hamming
+    levenshtein = ik.sim_levenshtein
+    abs_diff = ik.sim_difference
+
+    # Convert Location, Operating Time, Payment, Care system and services in the full_data_df to str
+    for col in ['Location', 'Operating Time', 'Payment', 'Care system', 'Services']:
+        full_data_df[col] = full_data_df[col].fillna("UNKNOWN")
+    
+    print(full_data_df['Location'].unique())
+    print(query_df['Location'])
+
+    # Assign Functions
+    similarity_functions = {
+        'rating': abs_diff,
+        'Location': levenshtein,
+        'Operating Time': levenshtein,
+        'Payment': levenshtein,
+        'Care system': levenshtein,
+        'Services': levenshtein
+    }
+
+    #Assign Weights
+    feature_weights = {
+        'rating': 1.0,
+        'Location': 0.3,
+        'Operating Time': 0.2,
+        'Payment': 0.2,
+        'Care system': 0.2,
+        'Services': 7.5
+    }
+
+    return ik.linearRetriever(full_data_df, query_df, similarity_functions, feature_weights, n).index

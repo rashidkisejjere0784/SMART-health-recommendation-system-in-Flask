@@ -1,6 +1,17 @@
 import pandas as pd
 import numpy as np
 import re
+import pickle
+
+def load_services_pickle():
+    with open('Data/medical_services.pickle', 'rb') as f:
+        medical_services = pickle.load(f)
+    return medical_services
+
+def find_service_category(service):
+    medical_services = load_services_pickle()
+    categories = [category for category, services in medical_services.items() if service in services]
+    return categories if categories else None
 
 def get_matrix(value, split_by, bow, is_op = False):
     matrix = np.zeros(len(bow))
@@ -71,8 +82,8 @@ def encode_care_system(care_system: str) -> int:
 
 
 # Create Matrix Factorization
-def generate_Factorized_Matrix(data, column):
-  bow = set()
+def generate_Factorized_Matrix(data, column, is_service = False):
+  bow = list()
   for i, element in enumerate(data[column].values):
     element = re.sub('\.', ',', str(element))
     values = element.split(',')
@@ -80,9 +91,14 @@ def generate_Factorized_Matrix(data, column):
         if value == '':
             continue
         value = value.strip().lower()
-        bow.add(value)
+        if is_service:
+            categories = find_service_category(value)
+            bow.extend(categories)
 
-  bow = sorted(bow)
+        else:
+            bow.append(value)
+
+  bow = sorted(set(bow))
 
   Matrix = np.zeros((len(data), len(bow)))
   for i, element in enumerate(data[column].values):
@@ -92,8 +108,14 @@ def generate_Factorized_Matrix(data, column):
     for word in words:
       try:
         word = word.strip().lower()
-        index = list(bow).index(word)
-        Matrix[i, index] = 1
+        if is_service:
+            categories = find_service_category(word)
+            for category in categories:
+                index = list(bow).index(category)
+                Matrix[i, index] = 1
+        else:
+            index = list(bow).index(word)
+            Matrix[i, index] = 1
       except:
         continue
 

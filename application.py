@@ -5,6 +5,7 @@ import numpy as np
 from config import SECRET_KEY, DATABASE_URI, JWT_SECRET_KEY, HOST, GMAIL_PASSWORD, GMAIL_USERNAME, DATA_PATH, TEMP_DATA, ADMIN_ID
 from flask_mail import Mail, Message 
 from flask_jwt_extended import JWTManager, create_access_token
+from data_preprocess import find_service_category
 from db import db
 from datetime import timedelta
 import jwt as JWT
@@ -55,17 +56,24 @@ def is_user_admin(user_id):
     
     return False
 
-def extract_elements(elements : list) -> set:
-    elements_set = set()
+def extract_elements(elements : list, is_service = False) -> set:
+    elements_set = list()
     for element in elements:
         for s in str(element).split(','):
             s = s.lower().strip()
             if s == 'nan':
                 continue
             if s != '':
-                elements_set.add(s)
+                if is_service:
+                    print(s,'---')
+                    s = find_service_category(s)
+                    print(s)
+                    elements_set.extend(s)
+
+                else:
+                    elements_set.append(s)
     
-    return sorted(elements_set)
+    return sorted(set(elements_set))
 
 @app.route('/')
 def home():
@@ -73,7 +81,8 @@ def home():
     services = data['Services'].values
     locations = data['Location'].values
     locations_set = extract_elements(np.append(['Any Location'], locations))
-    services_set = extract_elements(services)
+    services_set = extract_elements(services, True)
+    print(services_set)
 
     return render_template('home.html', services=services_set, locations=locations_set)
 
@@ -207,10 +216,13 @@ def get_recommendation():
     care_system = data.get('care', '')
     rating = data.get('rating', '')
     date = data.get('date', [])
+    approach = data.get('approach', '')
+
+    
     print(services, locations, payment)
 
-    recommendation = get_recommendations(services=",".join(services), 
-                                         location=",".join(locations), payment=payment, rating=rating, op_day=",".join(date), care_system=care_system)
+    recommendation = get_recommendations(services_str=",".join(services), 
+                                         location_str=",".join(locations), payment_str=payment, rating=rating, op_day_str=",".join(date), care_system=care_system, approach=approach)
     return jsonify({'status': 'success', 'recommendations': recommendation})
 
 

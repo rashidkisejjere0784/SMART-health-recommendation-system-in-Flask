@@ -16,6 +16,25 @@
                     <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-star"></i> Rating</li>
                 </ol>
             </nav>
+                
+                    <div id="approach" class="text-center">
+                        <h6>
+                            Recommendation Approach
+                        </h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="approach" id="CBF" checked>
+                            <label class="form-check-label" for="CBF">
+                              Content Based Filtering
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="approach" id="CBF">
+                            <label class="form-check-label" for="CBF">
+                              Case Based Reasoning
+                            </label>
+                        </div>
+                    </div>
+        
             
             <!-- First Part: Service Selection -->
             <div id="service-selection">
@@ -236,6 +255,14 @@
         document.getElementById('rating-value').innerText = 'Rating: ' + value;
     }
 
+    function getSelectedApproach() {
+        const selectedRadio = document.querySelector('input[name="approach"]:checked');
+        if (selectedRadio) {
+            return selectedRadio.nextElementSibling.textContent.trim();
+        }
+        return null;
+    }
+
     function submitForm() {
         const selectedServices = Array.from(document.getElementById('selected-services').children).map(li => li.innerText);
         const selectedPayment = document.getElementById('selected-payment').innerText;
@@ -245,6 +272,7 @@
         const date = document.getElementById('date');
         const selectedOptions = date.selectedOptions;
         const values = Array.from(selectedOptions).map(option => option.value);
+        const approach = getSelectedApproach()
 
         console.log(selectedLocation)
 
@@ -261,6 +289,7 @@
                       'rating': selectedRating,
                       'location': selectedLocation,
                       'date': values,
+                      'approach' : approach
                      })
             })
             .then(response => response.json())
