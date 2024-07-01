@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, jsonify, session
 import pandas as pd
 from get_recommendation import get_recommendations
 import numpy as np
-from config import SECRET_KEY, DATABASE_URI, JWT_SECRET_KEY, HOST, GMAIL_PASSWORD, GMAIL_USERNAME, DATA_PATH, TEMP_DATA, ADMIN_ID
+import os
+from dotenv import load_dotenv
 from flask_mail import Mail, Message 
 from flask_jwt_extended import JWTManager, create_access_token
 from data_preprocess import find_service_category
@@ -12,13 +13,15 @@ import jwt as JWT
 from flask_bcrypt import Bcrypt 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = SECRET_KEY
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
-app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
+load_dotenv()
+
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = GMAIL_USERNAME
-app.config['MAIL_PASSWORD'] = GMAIL_PASSWORD
+app.config['MAIL_USERNAME'] = os.getenv('GMAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('GMAIL_PASSWORD')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 
@@ -29,6 +32,12 @@ jwt = JWTManager(app)
 bcrpy = Bcrypt(app)
 
 from models.userModel import User
+
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+ADMIN_ID = os.environ.get('ADMIN_ID')
+DATA_PATH = os.environ.get('DATA_PATH')
+TEMP_DATA = os.environ.get('TEMP_DATA')
+HOST = os.environ.get('HOST')
 
 # with app.app_context():
 #     db.drop_all()
