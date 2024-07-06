@@ -13,7 +13,7 @@ def get_recommendation_filtered_services(service, location, op_day, care_s, paym
     print(service)
     full_data_services = Full_data[:, :len(service)]
     
-    top_choices = calculate_cosine_similarity(np.array([service]),full_data_services, hospital_data=hospital_data, n = 4)[1]
+    top_choices = calculate_cosine_similarity(np.array([service]),full_data_services, hospital_data=hospital_data, n = 10)[1]
 
     filtered_data = Full_data[top_choices]
     print(hospital_data.iloc[top_choices])
@@ -24,9 +24,9 @@ def get_recommendation_filtered_services(service, location, op_day, care_s, paym
 
     final_vector = final_vector.astype(np.float64)
     print(filtered_data[:, len(service):])
-    print(final_vector)
+    print(Full_data.shape)
 
-    Final_choices = calculate_cosine_similarity(final_vector, filtered_data[:, len(service):], hospital_data=hospital_data)[1]
+    Final_choices = calculate_cosine_similarity(final_vector, filtered_data[:, len(service):], hospital_data=hospital_data, n = 8)[1]
     top_choices = top_choices[Final_choices]
 
     return hospital_data.iloc[top_choices]
@@ -69,5 +69,7 @@ def get_recommendation_CBR(full_data_df : pd.DataFrame, query_df : pd.DataFrame,
         'Care system': 0.2,
         'Services': 7.5
     }
+
+    print(full_data_df['Services'].head())
 
     return ik.linearRetriever(full_data_df, query_df, similarity_functions, feature_weights, n).index

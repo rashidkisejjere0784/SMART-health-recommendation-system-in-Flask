@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 from flask_mail import Mail, Message 
 from flask_jwt_extended import JWTManager, create_access_token
-from data_preprocess import find_service_category
+from data_preprocess import find_service_category, load_services_pickle
 from db import db
 from datetime import timedelta
 import jwt as JWT
@@ -86,14 +86,14 @@ def extract_elements(elements : list, is_service = False) -> set:
 
 @app.route('/')
 def home():
-    data = pd.read_csv("./Data/Hospital Data - Hospital.csv")
+    data = pd.read_excel("./Data/Hospital Data - Hospital.xlsx")
     services = data['Services'].values
     locations = data['Location'].values
     locations_set = extract_elements(np.append(['Any Location'], locations))
     services_set = extract_elements(services, True)
-    print(services_set)
+    services_dict = load_services_pickle()
 
-    return render_template('home.html', services=services_set, locations=locations_set)
+    return render_template('home.html', services=services_set, locations=locations_set, services_dict=services_dict)
 
 @app.route('/review_data', methods=['GET', 'POST'])
 def review_data():
@@ -111,7 +111,7 @@ def review_data():
         action = request.form['Action']
 
         if action == 'approve':
-            hospital_data = pd.read_csv(DATA_PATH)
+            hospital_data = pd.read_excel(DATA_PATH)
             temp_data = pd.read_csv(TEMP_DATA)
 
             hospital = temp_data.iloc[id]

@@ -84,9 +84,11 @@ def encode_care_system(care_system: str) -> int:
 # Create Matrix Factorization
 def generate_Factorized_Matrix(data, column, is_service = False):
   bow = list()
+  data_cat = []
   for i, element in enumerate(data[column].values):
     element = re.sub('\.', ',', str(element))
     values = element.split(',')
+    cats = set()
     for value in values:
         if value == '':
             continue
@@ -94,9 +96,13 @@ def generate_Factorized_Matrix(data, column, is_service = False):
         if is_service:
             categories = find_service_category(value)
             bow.extend(categories)
+            for cat in categories:
+                cats.add(cat)
 
         else:
             bow.append(value)
+    
+    data_cat.append(list(cats))
 
   bow = sorted(set(bow))
 
@@ -119,5 +125,5 @@ def generate_Factorized_Matrix(data, column, is_service = False):
       except:
         continue
 
-  return Matrix, bow
+  return Matrix, bow, data_cat
 

@@ -14,10 +14,10 @@ def convert_services_to_cateogories(services : str):
    
 
 def get_recommendations(services_str : str, location_str : str, payment_str : str, rating : float, op_day_str : str , care_system : str, approach : str):
-    hospital_data = pd.read_csv("./Data/Hospital Data - Hospital.csv")
-    service_matrix, service_bow = generate_Factorized_Matrix(hospital_data, 'Services', is_service=True)
-    location_matrix, location_bow = generate_Factorized_Matrix(hospital_data, 'Location')
-    payment_matrix, payment_bow = generate_Factorized_Matrix(hospital_data, 'Payment')
+    hospital_data = pd.read_excel("./Data/Hospital Data - Hospital.xlsx")
+    service_matrix, service_bow, service_cats = generate_Factorized_Matrix(hospital_data, 'Services', is_service=True)
+    location_matrix, location_bow, _ = generate_Factorized_Matrix(hospital_data, 'Location')
+    payment_matrix, payment_bow, _ = generate_Factorized_Matrix(hospital_data, 'Payment')
     operating_time_matrix = hospital_data['Operating Time'].apply(gen_matrix_op_time).values
     care_system_full = hospital_data['Care system'].apply(lambda x: encode_care_system(str(x)))
     ratings_full = hospital_data['rating'].fillna(0).values
@@ -29,13 +29,16 @@ def get_recommendations(services_str : str, location_str : str, payment_str : st
     service = get_matrix(services_str, ',', service_bow)
     location = get_matrix(location_str.lower(), ',', location_bow)
 
-
     op = get_opday_matrix(op_day_str)
     payment = get_matrix(payment_str.lower(), ',', payment_bow)
     care_s = np.array([encode_care_system(care_system)])
 
-    if approach == "Content Based Filtering":
+    hospital_data['condensed services'] = service_cats
+    hospital_data['condensed services'] = hospital_data['condensed services'].apply(lambda x: ", ".join(x))
+    hospital_data.to_excel("Data/Cleaned data.xlsx")
 
+    if approach == "Content Based Filtering":
+      # recommendation based on Content Based Filtering
       recommendation = get_recommendation_filtered_services(service=service, location=location, 
                                                           op_day=op, payment=payment, care_s=care_s,
                                                             rating=rating,Full_data=Full_data, hospital_data=hospital_data)
@@ -57,7 +60,6 @@ def get_recommendations(services_str : str, location_str : str, payment_str : st
       recommendation = hospital_data.iloc[indicies]
 
 
-    print(recommendation.to_json())
     return recommendation.to_json()
 
 

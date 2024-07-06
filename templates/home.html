@@ -41,7 +41,8 @@
                 <h5 class="card-title">Select Services</h5>
                 <div id="services">
                     {% for service in services %}
-                        <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">{{ service }}</button>
+                        <button type="button" class="btn btn-outline-primary m-2" onclick="selectService(this)">{{ service }}<span class="info-icon" data-toggle="tooltip" data-placement="top" title="This service category constituents {{ services_dict[service] }}">?</span>
+                        </button>
                     {% endfor %}
                 </div>
                 <h6 class="mt-4">Selected Services:</h6>
@@ -154,9 +155,13 @@
 
 
 <script>
+    $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
     function selectService(button) {
         button.classList.toggle('selected');
-        const service = button.innerText;
+        var service = button.innerText;
+        service = service.slice(0, service.indexOf('?'))
         const selectedServices = document.getElementById('selected-services');
         
         if (button.classList.contains('selected')) {
