@@ -59,6 +59,10 @@ def is_authenticated():
     
     return False, None
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "OK"}), 200
+
 def is_user_admin(user_id):
     if user_id == ADMIN_ID:
         return True
