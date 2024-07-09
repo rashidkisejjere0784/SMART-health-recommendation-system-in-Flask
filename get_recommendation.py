@@ -13,21 +13,20 @@ def convert_services_to_cateogories(services : str):
     return ", ".join(list(set(service_categories)))
    
 
-def get_recommendations(services_str : str, location_str : str, payment_str : str, rating : float, op_day_str : str , care_system : str, approach : str):
+def get_recommendations(services_str : str, latitude : float, longitude : float, payment_str : str, rating : float, op_day_str : str , care_system : str, approach : str):
     hospital_data = pd.read_excel("./Data/Hospital Data - Hospital.xlsx")
     service_matrix, service_bow, service_cats = generate_Factorized_Matrix(hospital_data, 'Services', is_service=True)
-    location_matrix, location_bow, _ = generate_Factorized_Matrix(hospital_data, 'Location')
     payment_matrix, payment_bow, _ = generate_Factorized_Matrix(hospital_data, 'Payment')
     operating_time_matrix = hospital_data['Operating Time'].apply(gen_matrix_op_time).values
     care_system_full = hospital_data['Care system'].apply(lambda x: encode_care_system(str(x)))
     ratings_full = hospital_data['rating'].fillna(0).values
 
     care_system_rating = np.concatenate([care_system_full.values.reshape(-1, 1), ratings_full.reshape(-1, 1)], axis = 1)
-    Merged_data = np.concatenate([service_matrix, location_matrix, np.array(list(operating_time_matrix)), payment_matrix], axis =1)
+    Merged_data = np.concatenate([service_matrix, np.array(list(operating_time_matrix)), payment_matrix], axis =1)
     Full_data = np.concatenate([Merged_data, care_system_rating], axis =1)
 
     service = get_matrix(services_str, ',', service_bow)
-    location = get_matrix(location_str.lower(), ',', location_bow)
+    latitude_longitude = np.array([[latitude, longitude]])
 
     op = get_opday_matrix(op_day_str)
     payment = get_matrix(payment_str.lower(), ',', payment_bow)
@@ -39,7 +38,7 @@ def get_recommendations(services_str : str, location_str : str, payment_str : st
 
     if approach == "Content Based Filtering":
       # recommendation based on Content Based Filtering
-      recommendation = get_recommendation_filtered_services(service=service, location=location, 
+      recommendation = get_recommendation_filtered_services(service=service, lat_lng = latitude_longitude, 
                                                           op_day=op, payment=payment, care_s=care_s,
                                                             rating=rating,Full_data=Full_data, hospital_data=hospital_data)
     else:
@@ -50,7 +49,8 @@ def get_recommendations(services_str : str, location_str : str, payment_str : st
       full_data_df['Services'] = full_data_df['Services'].apply(convert_services_to_cateogories)
 
       query_df["Services"] = [services_str]
-      query_df["Location"] = [location_str]
+      query_df["Latitude"] = [latitude]
+      query_df["Longitude"] = [longitude]
       query_df["Operating Time"] = [op_day_str]
       query_df["Payment"] = [payment_str]
       query_df["Care system"] = [care_system]
@@ -60,6 +60,6 @@ def get_recommendations(services_str : str, location_str : str, payment_str : st
       recommendation = hospital_data.iloc[indicies]
 
 
-    return recommendation.to_json()
+    return recommendation
 
 

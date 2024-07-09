@@ -10,7 +10,9 @@ from data_preprocess import find_service_category, load_services_pickle
 from db import db
 from datetime import timedelta
 import jwt as JWT
+from geopy.geocoders import Photon
 from flask_bcrypt import Bcrypt 
+import requests
 app = Flask(__name__)
 
 load_dotenv()
@@ -38,6 +40,7 @@ ADMIN_ID = os.environ.get('ADMIN_ID')
 DATA_PATH = os.environ.get('DATA_PATH')
 TEMP_DATA = os.environ.get('TEMP_DATA')
 HOST = os.environ.get('HOST')
+GMAPS_API_KEY = os.environ.get('GMAPS_API_KEY')
 
 # with app.app_context():
 #     db.drop_all()
@@ -68,6 +71,24 @@ def is_user_admin(user_id):
         return True
     
     return False
+
+@app.route('/get-lat-lng', methods=["POST"])
+def get_lat_lng():
+    data = request.get_json()
+    address = data.get("address", "")
+
+    api_response = requests.get('https://maps.googleapis.com/maps/api/geocode/json?address={0}&key={1}'.format(address + ", Uganda", GMAPS_API_KEY))
+    api_response_dict = api_response.json()
+
+    if api_response_dict['status'] == 'OK':
+        latitude = api_response_dict['results'][0]['geometry']['location']['lat']
+        longitude = api_response_dict['results'][0]['geometry']['location']['lng']
+
+        return jsonify({"latitude": latitude, "longitude": longitude}), 200
+    
+    else:
+        return jsonify({"error": "Failed to get latitude and longitude"}), 400
+
 
 def extract_elements(elements : list, is_service = False) -> set:
     elements_set = list()
@@ -225,6 +246,8 @@ def get_recommendation():
     data = request.get_json()
     services = data.get('services', [])
     locations = data.get('location', [])
+    latitude = float(data.get('latitude', 0))
+    longitude = float(data.get('longitude', 0))
     payment = data.get('payment', '')
     care_system = data.get('care', '')
     rating = data.get('rating', '')
@@ -235,8 +258,21 @@ def get_recommendation():
     print(services, locations, payment)
 
     recommendation = get_recommendations(services_str=",".join(services), 
-                                         location_str=",".join(locations), payment_str=payment, rating=rating, op_day_str=",".join(date), care_system=care_system, approach=approach)
-    return jsonify({'status': 'success', 'recommendations': recommendation})
+                                         latitude=latitude, longitude=longitude, payment_str=payment, rating=rating, op_day_str=",".join(date), care_system=care_system, approach=approach)
+    hospital_ids = recommendation['Hospital Id'].values.tolist()
+    hospital_names = recommendation['Hospital Name'].values.tolist()
+    Services = recommendation['Services'].values.tolist()
+    Location = recommendation['Location'].values.tolist()
+    Care_system = recommendation['Care system'].values.tolist()
+    Rating = recommendation['rating'].values.tolist()
+    Operation_Time = recommendation['Operating Time'].values.tolist()
+    Latitude = recommendation['Latitude'].values.tolist()
+    Longitude = recommendation['Longitude'].values.tolist()
+    Payment = recommendation['Payment'].values.tolist()
+
+    return jsonify({'status': 'success', 'hospital_ids' : hospital_ids, 'hospital names' : hospital_names, 'Payment' : Payment,
+                     'services' : Services, 'Location' : Location, 'rating' : Rating, 'Care system' : Care_system,
+                     'operation_time' : Operation_Time, 'Latitude' : Latitude, 'Longitude' : Longitude})
 
 
 @app.route('/about')
