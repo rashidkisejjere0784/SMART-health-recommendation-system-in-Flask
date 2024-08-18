@@ -13,27 +13,26 @@
                     <li class="breadcrumb-item"><a href="#" onclick="goToStep(3)"><i class="fas fa-money-bill-alt"></i> Payment</a></li>
                     <li class="breadcrumb-item"><a href="#" onclick="goToStep(4)"><i class="fas fa-user-nurse"></i> Care System</a></li>
                     <li class="breadcrumb-item"><a href="#" onclick="goToStep(5)"><i class="far fa-calendar-alt"></i> Date</a></li>
-                    <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-star"></i> Rating</li>
                 </ol>
             </nav>
                 
-                    <div id="approach" class="text-center">
-                        <h6>
-                            Recommendation Approach
-                        </h6>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="approach" id="CBF" checked>
-                            <label class="form-check-label" for="CBF">
-                              Content Based Filtering
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="approach" id="CBF">
-                            <label class="form-check-label" for="CBF">
-                              Case Based Reasoning
-                            </label>
-                        </div>
-                    </div>
+            <div id="approach" class="text-center">
+                <h6>
+                    Recommendation Approach
+                </h6>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="approach" id="CBF" checked>
+                    <label class="form-check-label" for="CBF">
+                        Content Based Filtering
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="approach" id="CBF">
+                    <label class="form-check-label" for="CBF">
+                        Case Based Reasoning
+                    </label>
+                </div>
+            </div>
         
             
             <!-- First Part: Service Selection -->
@@ -57,14 +56,10 @@
             <!-- First Part: Service Selection -->
             <div id="location-selection" style="display: none;">
                 <h5 class="card-title text-center mb-4">Enter Location</h5>
-                <div id="location-search" class="d-flex justify-content-center mb-3">
-                    <input type="text" id="location-input" class="form-control w-50" placeholder="Enter location">
-                    <button type="button" class="btn btn-primary ml-2" onclick="searchLocation()">Search</button>
-                </div>
                 <div class="lat-lng d-flex justify-content-center mb-4">
                     <div class="mr-2">
                         <label for="latitude">Latitude</label>
-                        <input type="text" name="latitude" id="latitude" class="form-control" placeholder="Latitude">
+                        <input type="text" name="latitude" id="latitude" class="form-control" placeholder="Latitude" onchange="activate()">
                     </div>
                     <div>
                         <label for="longitude">Longitude</label>
@@ -125,11 +120,6 @@
                     <option>Sunday</option>
                 </select>
                 <br>
-                <br>
-
-                <h5 class="card-title">Rate the Hospital (0-5)</h5>
-                <input type="range" class="form-range" min="0" max="5" step="0.5" id="customRange3" oninput="updateRatingValue(this.value)">
-                <div id="rating-value" class="mt-2">Rating: 2.5</div>
 
                 <div class="mt-4 text-right">
                     <button class="btn btn-success fixed-button" onclick="submitForm()">Submit</button>
@@ -160,6 +150,15 @@
 
 
 <script>
+    function activate() {
+        const latInput = document.getElementById('latitude');
+        const lngInput = document.getElementById('longitude');
+        
+        if (latInput.value != null && lngInput.value != null){
+            document.getElementById('next-location-button').disabled = false;
+        }
+    }
+    
     $(document).ready(function(){
             $('[data-toggle="tooltip"]').tooltip();
         });
@@ -218,32 +217,6 @@
         document.getElementById('location-selection').style.display = 'block';
     }
 
-    function searchLocation() {
-        address = document.getElementById('location-input').value;
-
-        fetch('/get-lat-lng', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                     'address': address,
-                     })
-            })
-            .then(response => response.json())
-            .then(data => {
-                latitude = data['latitude']
-                longitude = data['longitude'];
-
-                document.getElementById('latitude').value = latitude;
-                document.getElementById('longitude').value = longitude;
-
-                const nextButton = document.getElementById('next-location-button');
-                nextButton.disabled = false;
-            })
-            .catch(error => console.error('Error:', error));
-    }
-    
     function goToPayment() {
         document.getElementById('location-selection').style.display = 'none';
         document.getElementById('payment-selection').style.display = 'block';
@@ -259,10 +232,6 @@
         document.getElementById('date-selection').style.display = 'block';
     }
 
-    function updateRatingValue(value) {
-        document.getElementById('rating-value').innerText = 'Rating: ' + value;
-    }
-
     function getSelectedApproach() {
         const selectedRadio = document.querySelector('input[name="approach"]:checked');
         if (selectedRadio) {
@@ -275,7 +244,6 @@
         const selectedServices = Array.from(document.getElementById('selected-services').children).map(li => li.innerText);
         const selectedPayment = document.getElementById('selected-payment').innerText;
         const selectedCare = document.getElementById('selected-care').innerText;
-        const selectedRating = document.getElementById('customRange3').value;
         const latitude = document.getElementById('latitude').value;
         const longitude = document.getElementById('longitude').value;
         const date = document.getElementById('date');
@@ -293,7 +261,6 @@
                      'services': selectedServices,
                       'payment': selectedPayment,
                       'care': selectedCare,
-                      'rating': selectedRating,
                       'latitude': latitude,
                       'longitude': longitude,
                       'date': values,
@@ -320,6 +287,8 @@
         const operatingTimes = data['operation_time'];
         const locations = data['Location'];
         const payments = data['Payment'];
+        const latitude = data['Latitude']
+        const longitude = data['Longitude']
 
         const dataContainer = document.getElementById('hospitalDataContainer');
         dataContainer.innerHTML = '';
@@ -349,7 +318,7 @@
             operatingTimeTable += '</tr></tbody></table>';
 
             card.innerHTML = `
-                <div class="hospital-name font-weight-bold">${Object.values(hospitalNames)[i]}</div>
+                <div class="hospital-name font-weight-bold">${Object.values(hospitalNames)[i]} <a href="https://www.google.com/maps?q=${Object.values(latitude)[i]},${Object.values(longitude)[i]}" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
                 <div class="hospital-info">
                     ${Object.values(services)[i]}
                 </div>
