@@ -38,7 +38,7 @@ Follow these steps to set up the project:
 
 6. **Run the project:**
     ```bash
-    flask run
+    python application.py
     ```
 
 ## Usage
